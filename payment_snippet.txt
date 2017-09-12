@@ -1,0 +1,7 @@
+<?php
+$output = '';
+
+require MODX_BASE_PATH."assets/snippets/payment/platron.inc.php";
+
+return $output;
+?>
