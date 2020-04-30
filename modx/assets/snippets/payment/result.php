@@ -2,7 +2,7 @@
 
 	include_once $_SERVER['DOCUMENT_ROOT'].'/manager/includes/config.inc.php';
 	include_once MODX_MANAGER_PATH.'includes/document.parser.class.inc.php';
-	require_once MODX_BASE_PATH."assets/snippets/payment/config/platron.php";
+	require_once MODX_BASE_PATH."assets/snippets/payment/config/paybox.php";
 	require_once MODX_BASE_PATH."assets/snippets/payment/include/PG_Signature.php";
 
 	$modx = new DocumentParser;
@@ -13,24 +13,24 @@
 		'Fail'	=> 5,
 		'Success'	=> 6,
 	);
-	
+
 	if(!empty($_POST))
 		$arrRequest = $_POST;
 	else
 		$arrRequest = $_GET;
 
-	
+
 	$thisScriptName = PG_Signature::getOurScriptName();
 	if (empty($arrRequest['pg_sig']) || !PG_Signature::check($arrRequest['pg_sig'], $thisScriptName, $arrRequest, PL_SECRET_KEY))
 		die("Wrong signature");
 
 	$order_id = $_REQUEST['pg_order_id'];
 	$dbOrder = $modx->db->getRow($modx->db->select("id, short_txt, content, allowed, addit, price, currency, DATE_FORMAT(date,'%d.%m.%Y %k:%i') AS date, status, email, phone, payment, tracking_num,  userid", $mod_table, "id = $order_id", "", ""));
-	
+
 	if(!isset($arrRequest['pg_result'])){
 		$bCheckResult = 0;
 		if(empty($dbOrder) || $dbOrder['status'] != $arrStatuses['Pending'])
-			$error_desc = "Товар не доступен. Либо заказа нет, либо его статус " . array_search($dbOrder['status'], $arrStatuses);	
+			$error_desc = "Товар не доступен. Либо заказа нет, либо его статус " . array_search($dbOrder['status'], $arrStatuses);
 		elseif(sprintf('%0.2f',$arrRequest['pg_amount']) != sprintf('%0.2f', $dbOrder['price']))
 			$error_desc = "Неверная сумма";
 		else
@@ -50,12 +50,12 @@
 	}
 	else{
 		$bResult = 0;
-		if(empty($dbOrder) || 
+		if(empty($dbOrder) ||
 				(($dbOrder['status'] != $arrStatuses['Pending']) &&
-				!($dbOrder['status'] != $arrStatuses['Success'] && $arrRequest['pg_result'] == 1) && 
+				!($dbOrder['status'] != $arrStatuses['Success'] && $arrRequest['pg_result'] == 1) &&
 				!($dbOrder['status'] != $arrStatuses['Fail'] && $arrRequest['pg_result'] == 0)))
 
-			$strResponseDescription = "Товар не доступен. Либо заказа нет, либо его статус " . array_search($dbOrder['status'], $arrStatuses);		
+			$strResponseDescription = "Товар не доступен. Либо заказа нет, либо его статус " . array_search($dbOrder['status'], $arrStatuses);
 		elseif(sprintf('%0.2f',$arrRequest['pg_amount']) != sprintf('%0.2f',$dbOrder['price']))
 			$strResponseDescription = "Неверная сумма";
 		else {
